@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+
+    image: forumish-backend
+    restart: unless-stopped
+
+    depends_on:
+      - redis
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      AutoMapper__LicenseKey: ${AUTOMAPPER_LICENSE_KEY:-}
+      ConnectionStrings__Redis: "redis:6379,connectTimeout=3000,syncTimeout=1000,asyncTimeout=1000"
+
+    volumes:
+      - backend-logs:/app/var/log
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+volumes:
+  backend-logs:
