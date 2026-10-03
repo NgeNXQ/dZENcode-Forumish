@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
 using StackExchange.Redis;
-using dZENcode.Forumish.Common.Resilience;
+using dZENcode.Forumish.Common.Resilience.Redis;
 using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 using dZENcode.Forumish.Features.Captcha.Infrastructure.Options;
 

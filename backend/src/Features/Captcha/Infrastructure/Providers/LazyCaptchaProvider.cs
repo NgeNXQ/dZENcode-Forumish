@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Lazy.Captcha.Core;
 using Lazy.Captcha.Core.Generator.Code;
 using Lazy.Captcha.Core.Generator.Image;
 using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
@@ -21,7 +22,8 @@ internal sealed class LazyCaptchaProvider(
         var payload = captchaImageGenerator.Generate(renderCode, new()
         {
             Width = width,
-            Height = height
+            Height = height,
+            ForegroundColors = DefaultColors.Colors
         });
 
         return (realCode, payload);

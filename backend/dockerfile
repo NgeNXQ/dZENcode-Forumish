@@ -1,0 +1,42 @@
+ARG DOTNET_VERSION=10.0
+
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
+
+WORKDIR /src
+
+COPY dZENcode.Forumish.csproj ./
+
+RUN dotnet restore dZENcode.Forumish.csproj
+
+COPY . .
+
+RUN dotnet publish dZENcode.Forumish.csproj \
+    --configuration Release \
+    --no-restore \
+    --output /app/publish \
+    /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS final
+
+WORKDIR /app
+
+# LazyCaptcha draws with SkiaSharp.
+# On Linux it  needs the SkiaSharp.NativeAssets.Linux package AND fontconfig
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fontconfig \
+    && rm -rf /var/lib/apt/lists/*
+
+# Fontconfig needs to have a writable cache directory
+ENV XDG_CACHE_HOME=/tmp/.cache
+
+RUN mkdir -p /app/var/log && chown -R $APP_UID /app/var
+
+COPY --from=build /app/publish .
+
+USER $APP_UID
+
+ENV ASPNETCORE_HTTP_PORTS=8080
+
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "dZENcode.Forumish.dll"]

@@ -1,9 +1,9 @@
 namespace dZENcode.Forumish.Common.Security.Captcha.Options;
 
-internal sealed record class CaptchaRateLimitOptions(
-    int PermitLimit,
-    int WindowSeconds
-)
+internal sealed class CaptchaRateLimitOptions
 {
     internal const string Section = "RateLimiting:Captcha";
+
+    public required int PermitLimit { get; init; }
+    public required int WindowSeconds { get; init; }
 }

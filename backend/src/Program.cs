@@ -184,6 +184,7 @@ try
     app.MapCaptchaEndpoints();
 
     app.Run();
+
     return 0;
 }
 catch (Exception exception) when (exception is not HostAbortedException)

@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.2.0" />
     <PackageReference Include="Lazy.Captcha.Core" Version="2.2.5" />
+    <PackageReference Include="SkiaSharp" Version="4.153.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.153.1" />
     <PackageReference Include="Polly.Extensions" Version="8.8.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
