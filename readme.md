@@ -23,8 +23,3 @@ A comments SPA built for the .NET / Entity Framework assignment, with persistent
 
 **Frontend:** Angular 22 and TypeScript 6 provide the SPA and reactive forms; RxJS coordinates requests and UI state. FingerprintJS supplies the browser fingerprint, and CSS styles the discussion and composer. Nginx serves the frontend, proxies API requests on the same origin, and applies security headers.
 
-## Database and assignment status
-
-[`schema.sql`](schema.sql) contains the SQL Server tables, relationships, indexes, and EF migration history. Hangfire creates its own infrastructure tables at runtime. The script uses T-SQL rather than MySQL Workbench's MySQL format.
-
-Remaining assignment differences: comments use cards instead of a table; there is no draft message preview or lightbox animation, WebSocket updates, GraphQL/graph database, RabbitMQ/Kafka broker, cloud deployment configuration, or load test.
