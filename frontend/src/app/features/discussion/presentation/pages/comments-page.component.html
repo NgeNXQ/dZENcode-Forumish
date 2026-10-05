@@ -1,0 +1,87 @@
+<main id="main" class="page-shell">
+  @if (postedComment(); as posted) {
+    <div class="success-notice" role="status"><span>✓</span>
+      <p>{{ posted.parentId === null ? 'Comment' : 'Reply' }} posted.
+      </p>
+      <button type="button" (click)="postedComment.set(null)" aria-label="Dismiss success message">×</button>
+    </div>
+  }
+  <div class="discussion-layout">
+    <section class="feed-column" aria-labelledby="feed-heading">
+      @if (facade.state$ | async; as state) {
+        <div class="feed-header">
+          <h1 id="feed-heading">Comments</h1>
+          <div class="feed-controls">
+            <button type="button" class="text-button" (click)="newComment()">[New post]</button>
+            <button type="button" class="text-button" (click)="reload()" [disabled]="state.loading"
+              aria-label="Refresh discussion">[Refresh]</button>
+          </div>
+        </div>
+          <div class="feed-toolbar">
+            <div class="sort-controls">
+              <label>Sort by <select [value]="reading().sortBy" (change)="changeSorting($event, 'sortBy')">
+                <option value="CreatedAt">Date</option><option value="Username">Username</option>
+                <option value="Email">Email</option>
+              </select></label>
+              <select aria-label="Sort direction" [value]="reading().direction"
+                (change)="changeSorting($event, 'direction')">
+                <option value="Descending">Descending ↓</option>
+                <option value="Ascending">Ascending ↑</option>
+              </select>
+            </div>
+          </div>
+        <div class="feed" [attr.aria-busy]="state.loading">
+          @if (state.loading) {
+            <p class="loading-state" role="status">Loading comments…</p>
+          } @else if (state.error) {
+            <div class="empty-state error-state" role="alert">
+              <p>{{ state.error }}</p>
+              <button type="button" class="secondary-button" (click)="reload()">Try again</button>
+            </div>
+          } @else {
+            @for (comment of state.items; track comment.id) {
+              <app-comment-card [comment]="comment" (reply)="reply($event)" />
+            } @empty {
+              <div class="empty-state">
+                <p>No comments{{ state.page > 1 ? ' on this page' : ' yet' }}.</p>
+              </div>
+            }
+          }
+        </div>
+        @if (!state.error) {
+          <div class="pagination">
+            <label>Per page <select [ngModel]="reading().size" (ngModelChange)="changePageSize($event)">
+              @for (size of [10, 25, 50, 100]; track size) {
+                @if (size <= settings.comment.maximumPageSize) { <option [ngValue]="size">{{ size }}</option> }
+              }
+            </select></label>
+            <div class="page-controls">
+              <button type="button" (click)="page(state.page - 1)" [disabled]="state.page <= 1 || state.loading"
+                aria-label="Previous page">
+                <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M20 12H4m6-6-6 6 6 6" />
+                </svg>
+              </button>
+              <span>Page {{ state.page }}</span>
+              <button type="button" (click)="page(state.page + 1)" [disabled]="!state.hasNext || state.loading"
+                aria-label="Next page">
+                <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 12h16m-6-6 6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </section>
+  </div>
+  <dialog #composerDialog class="composer-dialog" aria-labelledby="composer-heading"
+    (cancel)="cancelComposer($event)" (close)="resetComposer()">
+    @if (composerMounted()) {
+      <button type="button" class="text-button modal-close" (click)="closeComposer()"
+        [disabled]="composerBusy" aria-label="Close post form">[Close]</button>
+      <app-comment-composer [parent]="replyingTo()" (cancelReply)="closeComposer()"
+        (posted)="onPosted($event)" />
+    }
+  </dialog>
+</main>

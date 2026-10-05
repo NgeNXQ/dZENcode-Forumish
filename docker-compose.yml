@@ -1,0 +1,55 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+    image: forumish-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-4200}:80"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+    image: forumish-backend
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+      sqlserver:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      AutoMapper__LicenseKey: ${AUTOMAPPER_LICENSE_KEY:-}
+      ConnectionStrings__Redis: "redis:6379,connectTimeout=3000,syncTimeout=1000,asyncTimeout=1000"
+      ConnectionStrings__SqlServer: "Server=sqlserver,1433;Database=Forumish;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env};Encrypt=True;TrustServerCertificate=True"
+      Database__ApplyMigrations: "true"
+    volumes:
+      - backend-logs:/app/var/log
+      - backend-attachments:/app/www/attachments
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+volumes:
+  backend-logs:
+  backend-attachments:
+  sqlserver-data:

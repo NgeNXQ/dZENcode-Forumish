@@ -1,0 +1,98 @@
+@if (facade.state$ | async; as state) {
+  <section class="composer panel" aria-labelledby="composer-heading">
+    <div class="composer-heading">
+      <h2 id="composer-heading">{{ parent() ? 'Reply' : 'New post' }}</h2>
+    </div>
+    @if (parent(); as target) {
+      <div class="reply-notice">
+        <span>Replying to <strong>{{ target.username }}</strong> · #{{ target.id }}</span>
+        <button type="button" (click)="cancelReply.emit()" [disabled]="state.busy"
+          aria-label="Cancel reply">×</button>
+      </div>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="state.busy">
+      <div class="form-row">
+        <label>Username <span class="required-mark">*</span>
+          <input formControlName="username" autocomplete="username" placeholder="Your name"
+            [maxlength]="settings.comment.usernameMaximumLength" [readOnly]="state.busy"
+            [attr.aria-invalid]="invalid('username')" aria-describedby="username-error">
+        </label>
+        <label>Email <span class="required-mark">*</span>
+          <input formControlName="email" type="email" autocomplete="email" placeholder="you@example.com"
+            [maxlength]="settings.comment.emailMaximumLength" [readOnly]="state.busy"
+            [attr.aria-invalid]="invalid('email')" aria-describedby="email-error">
+        </label>
+      </div>
+      @if (invalid('username')) {
+        <p id="username-error" class="field-error">Use {{ settings.comment.usernameMinimumLength }}–{{ settings.comment.usernameMaximumLength }} English letters or digits.</p>
+      }
+      @if (invalid('email')) {
+        <p id="email-error" class="field-error">Enter a valid email address.</p>
+      }
+      <label>Homepage <span class="optional-label">optional</span>
+        <input formControlName="homePage" type="url" placeholder="https://example.com"
+          [maxlength]="settings.comment.homePageMaximumLength" [readOnly]="state.busy"
+          [attr.aria-invalid]="invalid('homePage')" aria-describedby="homepage-error">
+      </label>
+      @if (invalid('homePage')) {
+        <p id="homepage-error" class="field-error">Use a complete http:// or https:// website address.</p>
+      }
+      <label for="comment-message">Comment <span class="required-mark">*</span></label>
+      <div class="message-editor" [class.invalid]="invalid('message')">
+        <div class="formatting-bar" aria-label="Message formatting">
+          <button type="button" (click)="format('strong')" [disabled]="state.busy" aria-label="Bold text"><b>B</b></button>
+          <button type="button" (click)="format('i')" [disabled]="state.busy" aria-label="Italic text"><i>I</i></button>
+          <button type="button" (click)="format('code')" [disabled]="state.busy" aria-label="Insert code" title="Insert code">
+            <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18" />
+            </svg>
+          </button>
+          <button type="button" (click)="format('a')" [disabled]="state.busy" aria-label="Link">↗</button>
+        </div>
+        <textarea #messageInput id="comment-message" formControlName="message" rows="6"
+          [readOnly]="state.busy"
+          [maxlength]="settings.comment.messageMaximumLength" [attr.aria-invalid]="invalid('message')"
+          aria-describedby="message-hint message-error"></textarea>
+        <div class="editor-footer"><span id="message-hint">Links, bold, italics &amp; code</span>
+          <span>{{ form.controls.message.value.length }} / {{ settings.comment.messageMaximumLength }}</span>
+        </div>
+      </div>
+      @if (invalid('message')) {
+        <p id="message-error" class="field-error">Write a message before posting.</p>
+      }
+      <div class="upload-box">
+        <input #fileInput id="comment-file" type="file" [accept]="accept" (change)="chooseFile($event)"
+          [disabled]="state.busy" class="visually-hidden">
+        @if (attachment(); as file) {
+          <div class="selected-file"><span>▤ {{ file.name }}</span>
+            <span class="muted">{{ formatBytes(file.size) }}</span>
+            <button type="button" class="text-button" (click)="removeFile()" [disabled]="state.busy"
+              aria-label="Remove attachment">×</button>
+          </div>
+        } @else {
+          <label for="comment-file" class="upload-label"><span class="upload-icon">＋</span>
+            <span><strong>Add an attachment</strong><small>
+              JPEG, PNG or GIF up to {{ formatBytes(settings.attachment.mime['image/jpeg']) }}
+              · TXT up to {{ formatBytes(settings.attachment.mime['text/plain']) }}
+            </small></span>
+          </label>
+        }
+      </div>
+      @if (fileError()) { <p class="field-error" role="alert">{{ fileError() }}</p> }
+      <app-captcha [disabled]="state.busy" (answer)="proof.set($event)" />
+      @if (submitted() && !proof()) {
+        <p class="field-error">Enter the verification code before posting.</p>
+      }
+      @if (state.error) {
+        <div class="error-notice" role="alert"><strong>{{ state.error }}</strong>
+          @if (fieldErrors(state.fields).length) {
+            <ul>@for (error of fieldErrors(state.fields); track $index) { <li>{{ error }}</li> }</ul>
+          }
+        </div>
+      }
+      <button class="primary-button submit-button" type="submit" [disabled]="state.busy">
+        {{ state.busy ? 'Posting…' : 'Post' }}
+      </button>
+    </form>
+  </section>
+}
