@@ -13,8 +13,9 @@ internal static partial class RedisConnectionFactory
         ArgumentNullException.ThrowIfNull(logger);
 
         var options = ConfigurationOptions.Parse(connectionString);
-        options.AbortOnConnectFail = false;
+
         options.ClientName ??= "dZENcode.Forumish";
+        options.AbortOnConnectFail = false;
 
         var multiplexer = ConnectionMultiplexer.Connect(options);
 
@@ -46,46 +47,64 @@ internal static partial class RedisConnectionFactory
     [LoggerMessage(
         EventId = 1000,
         Level = LogLevel.Information,
-        Message = "Connected to Redis ({Endpoints})")]
-    private static partial void LogConnected(ILogger logger, string endpoints);
-
-    [LoggerMessage(
-        EventId = 1001,
-        Level = LogLevel.Warning,
-        Message = "Redis is not reachable yet ({Endpoints}); retrying in the background")]
-    private static partial void LogInitialConnectionPending(ILogger logger, string endpoints);
-
-    [LoggerMessage(
-        EventId = 1002,
-        Level = LogLevel.Warning,
-        Message = "Redis connection failed. Endpoint: {Endpoint}, FailureType: {FailureType}")]
-    private static partial void LogConnectionFailed(
+        Message = "Connected to Redis ({Endpoints})")
+    ]
+    private static partial void LogConnected(
         ILogger logger,
-        Exception? exception,
-        string? endpoint,
-        ConnectionFailureType failureType);
-
-    [LoggerMessage(
-        EventId = 1003,
-        Level = LogLevel.Information,
-        Message = "Redis connection restored. Endpoint: {Endpoint}")]
-    private static partial void LogConnectionRestored(ILogger logger, string? endpoint);
+        string endpoints
+    );
 
     [LoggerMessage(
         EventId = 1004,
         Level = LogLevel.Error,
-        Message = "Redis server error. Endpoint: {Endpoint}, Message: {ServerMessage}")]
+        Message = "Redis server error. Endpoint: {Endpoint}, Message: {ServerMessage}")
+    ]
     private static partial void LogServerError(
         ILogger logger,
         string? endpoint,
-        string serverMessage);
+        string serverMessage
+    );
 
     [LoggerMessage(
         EventId = 1005,
         Level = LogLevel.Error,
-        Message = "Redis internal error. Origin: {Origin}")]
+        Message = "Redis internal error. Origin: {Origin}")
+    ]
     private static partial void LogInternalError(
         ILogger logger,
         Exception? exception,
-        string? origin);
+        string? origin
+    );
+
+    [LoggerMessage(
+        EventId = 1002,
+        Level = LogLevel.Warning,
+        Message = "Redis connection failed. Endpoint: {Endpoint}, FailureType: {FailureType}")
+    ]
+    private static partial void LogConnectionFailed(
+        ILogger logger,
+        Exception? exception,
+        string? endpoint,
+        ConnectionFailureType failureType
+    );
+
+    [LoggerMessage(
+        EventId = 1003,
+        Level = LogLevel.Information,
+        Message = "Redis connection restored. Endpoint: {Endpoint}")
+    ]
+    private static partial void LogConnectionRestored(
+        ILogger logger,
+        string? endpoint
+    );
+
+    [LoggerMessage(
+        EventId = 1001,
+        Level = LogLevel.Warning,
+        Message = "Redis is not reachable yet ({Endpoints}); retrying in the background")
+    ]
+    private static partial void LogInitialConnectionPending(
+        ILogger logger,
+        string endpoints
+    );
 }

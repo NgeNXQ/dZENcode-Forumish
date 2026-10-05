@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using dZENcode.Forumish.Common.Security.Captcha.Policies;
 using dZENcode.Forumish.Shared.FluentValidation.Filters;
+using dZENcode.Forumish.Common.Security.Captcha.Policies;
 using dZENcode.Forumish.Features.Captcha.Presentation.Schemas;
 
 namespace dZENcode.Forumish.Features.Captcha.Presentation.Groups;
@@ -15,7 +15,7 @@ internal static class CaptchaGroupExtensions
         {
             var group = builder.MapGroup("api/captcha")
                 .WithTags("Captcha")
-                .RequireRateLimiting(CaptchaPolicies.CreationRateLimit);
+                .RequireRateLimiting(CaptchaSecurityPolicies.CreationRateLimit);
 
             group.MapPost("/", CaptchaGroup.CreateCaptcha)
                 .EnableValidation<CaptchaCreationRequest>()

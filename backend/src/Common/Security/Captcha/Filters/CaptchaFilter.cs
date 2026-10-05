@@ -1,9 +1,10 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using dZENcode.Forumish.Common.Security.Captcha.Options;
-using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 using dZENcode.Forumish.Features.Captcha.Infrastructure.Options;
+using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 
 namespace dZENcode.Forumish.Common.Security.Captcha.Filters;
 
@@ -18,7 +19,8 @@ internal sealed class CaptchaFilter(
 
     public async ValueTask<object?> InvokeAsync(
         EndpointFilterInvocationContext context,
-        EndpointFilterDelegate next)
+        EndpointFilterDelegate next
+    )
     {
         if (!_TryGetCaptchaValues(context.HttpContext, out var id, out var code))
             return Results.BadRequest("CAPTCHA is required");
@@ -40,30 +42,52 @@ internal sealed class CaptchaFilter(
         return await next(context);
     }
 
-    private bool _TryGetCaptchaValues(HttpContext httpContext, out string id, out string code)
+    private bool _TryGetCaptchaValues(HttpContext httpContext, out Guid id, out string code)
     {
-        id = string.Empty;
+        id = Guid.Empty;
         code = string.Empty;
         var headers = httpContext.Request.Headers;
 
-        if (!headers.TryGetValue(_concernsOptions.IdHeader, out var idValue))
+        if (!_TryGetHeaderValue(
+            headers, _concernsOptions.IdHeader, _generalOptions.IdLength, out var idValue
+        ))
+        {
+            return false;
+        }
+
+        if (!_TryGetHeaderValue(
+            headers, _concernsOptions.CodeHeader, _generalOptions.CodeLength, out code
+        ))
+        {
+            return false;
+        }
+
+        return Guid.TryParse(idValue, out id);
+    }
+
+    private static bool _TryGetHeaderValue(
+        IHeaderDictionary headers,
+        string name,
+        int expectedLength,
+        out string value
+    )
+    {
+        value = string.Empty;
+
+        if (!headers.TryGetValue(name, out var headerValues))
             return false;
 
-        if (!headers.TryGetValue(_concernsOptions.CodeHeader, out var codeValue))
+        if (headerValues.Count != 1)
             return false;
 
-        if (idValue.Count != 1 || codeValue.Count != 1)
+        var headerValue = headerValues[0];
+        if (string.IsNullOrWhiteSpace(headerValue))
             return false;
 
-        id = idValue[0]!;
-        code = codeValue[0]!;
-
-        if (string.IsNullOrEmpty(id) || id.Length != _generalOptions.IdLength)
+        if (headerValue.Length != expectedLength)
             return false;
 
-        if (string.IsNullOrEmpty(code) || code.Length != _generalOptions.CodeLength)
-            return false;
-
+        value = headerValue;
         return true;
     }
 }

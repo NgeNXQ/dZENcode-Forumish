@@ -29,7 +29,8 @@ RUN apt-get update \
 # Fontconfig needs to have a writable cache directory
 ENV XDG_CACHE_HOME=/tmp/.cache
 
-RUN mkdir -p /app/var/log && chown -R $APP_UID /app/var
+RUN mkdir -p /app/var/log /app/www/attachments \
+    && chown -R $APP_UID /app/var /app/www/attachments
 
 COPY --from=build /app/publish .
 

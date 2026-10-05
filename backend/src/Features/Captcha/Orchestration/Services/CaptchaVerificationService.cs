@@ -11,15 +11,15 @@ internal sealed class CaptchaVerificationService(
 ) : ICaptchaVerificationService
 {
     public async Task<CaptchaVerificationResult> VerifyCaptchaAsync(
-        string id,
+        Guid id,
         string code,
         CancellationToken token
     )
     {
-        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(code))
+        if (string.IsNullOrWhiteSpace(code))
             return new() { IsSuccess = false };
 
-        var storedCode = await captchasRepository.ConsumeEntryAsync(id.Trim(), token);
+        var storedCode = await captchasRepository.ConsumeEntryAsync(id, token);
 
         if (storedCode is null)
             return new() { IsSuccess = false };
