@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "rootDir": "src",
+    "outDir": ".test-build",
+    "types": []
+  },
+  "include": [
+    "src/app/shared/orchestration/parse-app-settings.ts",
+    "src/app/shared/orchestration/parse-validation-errors.ts",
+    "src/app/shared/orchestration/parse-retry-after.ts",
+    "src/app/shared/orchestration/failure-message.ts",
+    "src/app/features/captcha/infrastructure/parse-challenge.ts",
+    "src/app/features/discussion/infrastructure/parse-comment-page.ts",
+    "src/app/features/discussion/infrastructure/prepare-attachment-preview.ts"
+  ]
+}
