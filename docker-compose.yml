@@ -1,4 +1,16 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+    image: forumish-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-4200}:80"
+
   backend:
     build:
       context: ./backend
@@ -7,7 +19,7 @@ services:
     restart: unless-stopped
     depends_on:
       redis:
-        condition: service_healthy
+        condition: service_started
       sqlserver:
         condition: service_started
     ports:
@@ -26,11 +38,6 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     command: ["redis-server", "--save", "", "--appendonly", "no"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest

@@ -1,0 +1,31 @@
+{
+  "apiBaseUrl": "/api",
+  "requestTimeoutMs": 30000,
+  "captcha": {
+    "width": 200,
+    "height": 64,
+    "codeLength": 5,
+    "expirationSeconds": 120,
+    "idHeader": "X-Captcha-Id",
+    "codeHeader": "X-Captcha-Code"
+  },
+  "comment": {
+    "emailMaximumLength": 254,
+    "usernameMinimumLength": 3,
+    "usernameMaximumLength": 64,
+    "homePageMaximumLength": 2048,
+    "messageMaximumLength": 4096,
+    "defaultPageSize": 25,
+    "maximumPageSize": 100
+  },
+  "attachment": {
+    "mime": {
+      "image/jpeg": 10485760,
+      "image/png": 10485760,
+      "image/gif": 10485760,
+      "text/plain": 102400
+    },
+    "pollIntervalMs": 2000,
+    "pollAttempts": 15
+  }
+}
