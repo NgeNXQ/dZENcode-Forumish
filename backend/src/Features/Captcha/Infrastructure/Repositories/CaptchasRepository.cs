@@ -6,8 +6,8 @@ using Polly;
 using Polly.Registry;
 using StackExchange.Redis;
 using dZENcode.Forumish.Common.Resilience.Redis;
-using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 using dZENcode.Forumish.Features.Captcha.Infrastructure.Options;
+using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 
 namespace dZENcode.Forumish.Features.Captcha.Infrastructure.Repositories;
 
@@ -17,10 +17,15 @@ internal sealed class CaptchasRepository(
     ResiliencePipelineProvider<StackExchangeRedisPipeline> pipelineProvider
 ) : ICaptchasRepository
 {
+    private readonly CaptchaStorageOptions _storageOptions = captchaStorageOptions.Value;
+
     private readonly ResiliencePipeline _redisDefaultPipeline = pipelineProvider.GetPipeline(
         StackExchangeRedisPipeline.Default
     );
-    private readonly CaptchaStorageOptions _storageOptions = captchaStorageOptions.Value;
+
+    private readonly ResiliencePipeline _redisConsumptionPipeline = pipelineProvider.GetPipeline(
+        StackExchangeRedisPipeline.Consumption
+    );
 
     public async Task CreateEntryAsync(Guid id, string code, CancellationToken token)
     {
@@ -30,28 +35,24 @@ internal sealed class CaptchasRepository(
                 var database = redisConnectionMultiplexer.GetDatabase();
 
                 await database.StringSetAsync(
-                        $"{_storageOptions.EntryPrefix}:{id}",
-                        code,
-                        TimeSpan.FromSeconds(_storageOptions.EntryExpirationSeconds)
-                    )
-                    .WaitAsync(contextToken);
+                    $"{_storageOptions.EntryPrefix}:{id}",
+                    code,
+                    TimeSpan.FromSeconds(_storageOptions.EntryExpirationSeconds)
+                ).WaitAsync(contextToken);
             },
             token
         );
     }
 
-    public async Task<string?> ConsumeEntryAsync(string id, CancellationToken token)
+    public async Task<string?> ConsumeEntryAsync(Guid id, CancellationToken token)
     {
-        if (!Guid.TryParse(id, out var guid))
-            return null;
-
-        return await _redisDefaultPipeline.ExecuteAsync(
+        return await _redisConsumptionPipeline.ExecuteAsync(
             async contextToken =>
             {
                 var database = redisConnectionMultiplexer.GetDatabase();
 
                 var value = await database.StringGetDeleteAsync(
-                    $"{_storageOptions.EntryPrefix}:{guid}"
+                    $"{_storageOptions.EntryPrefix}:{id}"
                 ).WaitAsync(contextToken);
 
                 return value.IsNullOrEmpty ? null : value.ToString();

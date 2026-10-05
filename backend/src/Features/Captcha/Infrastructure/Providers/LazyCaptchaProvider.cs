@@ -2,24 +2,29 @@ using Microsoft.Extensions.Options;
 using Lazy.Captcha.Core;
 using Lazy.Captcha.Core.Generator.Code;
 using Lazy.Captcha.Core.Generator.Image;
-using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 using dZENcode.Forumish.Features.Captcha.Infrastructure.Options;
+using dZENcode.Forumish.Features.Captcha.Orchestration.Interfaces;
 
 namespace dZENcode.Forumish.Features.Captcha.Infrastructure.Providers;
 
-internal sealed class LazyCaptchaProvider(
-    ICaptchaCodeGenerator captchaCodeGenerator,
-    ICaptchaImageGenerator captchaImageGenerator,
-    IOptions<CaptchaGeneralOptions> captchaGeneralOptions
-) : ICaptchaProvider
+internal sealed class LazyCaptchaProvider : ICaptchaProvider
 {
-    private readonly CaptchaGeneralOptions _generalOptions = captchaGeneralOptions.Value;
+    private readonly CaptchaGeneralOptions _generalOptions;
+    private readonly ICaptchaCodeGenerator _captchaCodeGenerator;
+    private readonly ICaptchaImageGenerator _captchaImageGenerator;
+
+    public LazyCaptchaProvider(IOptions<CaptchaGeneralOptions> captchaGeneralOptions)
+    {
+        _generalOptions = captchaGeneralOptions.Value;
+        _captchaCodeGenerator = new DefaultCaptchaCodeGenerator();
+        _captchaImageGenerator = new DefaultCaptchaImageGenerator();
+    }
 
     public (string code, byte[] payload) Generate(int width, int height)
     {
-        (var renderCode, var realCode) = captchaCodeGenerator.Generate(_generalOptions.CodeLength);
+        (var renderCode, var realCode) = _captchaCodeGenerator.Generate(_generalOptions.CodeLength);
 
-        var payload = captchaImageGenerator.Generate(renderCode, new()
+        var payload = _captchaImageGenerator.Generate(renderCode, new()
         {
             Width = width,
             Height = height,
